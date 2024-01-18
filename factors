@@ -1,69 +1,49 @@
-#!/usr/bin/python3
+#!/usr/bin/env bash
+# is a factors challenge
 
-import math
-import time
-import sys
+check_factor()
+{
+	if [ $# -ne 3 ];
+        then
+                args=("$@")
+                count=0
+                num2=1
+                for a in ${args[*]};
+                do
+                        if [ $count -gt 1 ];
+                        then
+                                num2=$(echo $a*$num2 | bc)
+                        fi
+                        count=$((count + 1))
+                done
+        else
+                num2=$3
+        fi
 
+        num1=$2
+        num=$(echo "$1" | tr ':' '=')
 
-def factor_num(num):
-    """ Function for factorizing a number into 2 smaller numbers
+        result=$(echo "if($num2 > $num1) 1 else 0" | bc)
+	        if ((result == 1)); then
+		        numcp=$num1
+		        num1=$num2
+		        num2=$numcp
+                fi
 
-    Args: digit, an integer to be factorized
+        echo "$num$num1*$num2"
+}
 
-    Return: a tuple of the factors of the given digit
-    if found and (0,0) if otherwise
+if [ $# -ne 1 ]
+then
+        echo 'Usage: factors <file>'
+        exit 1
+else
 
-    """
+        while read i
+        do
 
-    for i in range(2, int(math.sqrt(num)) + 1):
-        """ If the loop gets to a number(h) which is evenly divisible by digit
-            then it is a factor of the digit
-        """
-        if num % i == 0:
-            return i, num // i
-        """if not, return a tuple of nothing"""
-    return None, None
+                result=$(factor "$i")
+                check_factor $result
 
-
-def print_factor_num(num):
-    """Function that prints the factors of digit in the format
-    'n=p*q' where p and q are the factors and n is the factors multiplied
-
-    Args: digit(integer) to be factorized
-    A time limit of 5 seconds is enforced as per requirement
-    """
-
-    """Current time program starts is captured"""
-    start = time.time()
-
-    """Calling the previous function to factorize"""
-    p, q = factor_num(num)
-
-    """time it took for factorization is calculated"""
-    time_limit = time.time() - start
-    if time_limit <= 5:
-        if p is not None and q is not None:
-            print("{}={}*{}".format(num, p, q))
-        else:
-            print("{} is a prime number".format(num))
-    else:
-        print("factorization took too long")
-
-
-def read_from_file(file_n):
-    with open(file_n, 'r') as file:
-        for every_line in file:
-            """covert digits read into integers,
-            removing whitespace characters
-            """
-            num = int(every_line.strip())
-            print_factor_num(num)
-
-
-if __name__ == "__main__":
-    '''Reads input file and factorizes.'''
-    if len(sys.argv) != 2:
-        print("Usage <file>")
-    else:
-        reading_file = sys.argv[1]
-        read_from_file(reading_file)
+        done < "$1"
+fi
